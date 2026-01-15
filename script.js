@@ -25,15 +25,26 @@ async function loadModel() {
 window.onload = loadModel;
 
 // IMAGE UPLOAD
-document.getElementById("imageUpload").addEventListener("change", async function (event) {
+document.getElementById("imageUpload").addEventListener("change", function (event) {
     if (!modelLoaded) return;
+
+    const file = event.target.files[0];
+    if (!file) return;
 
     const img = document.getElementById("preview");
     img.style.display = "block";
-    img.src = window.URL.createObjectURL(event.target.files[0]);
+    
+    // Create a reader to ensure the image is fully loaded into memory
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
 
+    // Run prediction after the source is set
     img.onload = async () => {
         const prediction = await model.predict(img);
+        console.log("Upload Prediction:", prediction); // Check console to see if it's working
         displayResults(prediction);
     };
 });
@@ -73,12 +84,20 @@ function displayResults(prediction) {
     const labelContainer = document.getElementById("label-container");
     labelContainer.innerHTML = "";
 
+    // Sort predictions so the highest percentage is at the top
+    prediction.sort((a, b) => b.probability - a.probability);
+
     prediction.forEach(p => {
         const percentage = (p.probability * 100).toFixed(2);
-        if (percentage > 5) {
-            const res = document.createElement("div");
-            res.innerHTML = `${p.className}: ${percentage}%`;
-            labelContainer.appendChild(res);
+        const res = document.createElement("div");
+        
+        // Highlight the top result in green
+        if (p.probability > 0.5) {
+            res.style.border = "2px solid #2e7d32";
+            res.style.backgroundColor = "#e8f5e9";
         }
+
+        res.innerHTML = `${p.className}: ${percentage}%`;
+        labelContainer.appendChild(res);
     });
 }
