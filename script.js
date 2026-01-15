@@ -2,31 +2,34 @@ const MODEL_URL = "./model/";
 let model, webcam, maxPredictions;
 let modelLoaded = false;
 
-// 1. Load Model
+// Load the model
 async function loadModel() {
     try {
         const modelURL = MODEL_URL + "model.json";
         const metadataURL = MODEL_URL + "metadata.json";
 
+        // This is where tmImage is used
         model = await tmImage.load(modelURL, metadataURL);
         maxPredictions = model.getTotalClasses();
         modelLoaded = true;
+        
         document.getElementById("status").innerText = "Model loaded! Ready to classify.";
+        console.log("Model loaded successfully");
     } catch (e) {
-        document.getElementById("status").innerText = "Error loading model. Check folder names/paths.";
+        document.getElementById("status").innerText = "Error loading model: " + e.message;
         console.error(e);
     }
 }
-window.onload = () => {
-    loadModel();
-};
 
-// 2. Image Upload (Fixed window.URL conflict)
+// Start loading when the window opens
+window.onload = loadModel;
+
+// IMAGE UPLOAD
 document.getElementById("imageUpload").addEventListener("change", async function (event) {
     if (!modelLoaded) return;
 
     const img = document.getElementById("preview");
-    // FIXED LINE BELOW: Added window.
+    img.style.display = "block";
     img.src = window.URL.createObjectURL(event.target.files[0]);
 
     img.onload = async () => {
@@ -35,18 +38,15 @@ document.getElementById("imageUpload").addEventListener("change", async function
     };
 });
 
-// 3. Webcam Setup (Added mobile support)
+// WEBCAM (This must be a global function for onclick to see it)
 async function startWebcam() {
     if (!modelLoaded) {
-        alert("Model is still loading!");
+        alert("AI is still loading, please wait!");
         return;
     }
 
-    const flip = true; 
-    webcam = new tmImage.Webcam(300, 300, flip); 
-
     try {
-        // FIXED LINE BELOW: Added facingMode for mobile back-camera support
+        webcam = new tmImage.Webcam(300, 300, true); 
         await webcam.setup({ facingMode: "environment" }); 
         await webcam.play();
 
@@ -56,28 +56,29 @@ async function startWebcam() {
 
         window.requestAnimationFrame(loop);
     } catch (err) {
-        console.error("Webcam error:", err);
-        alert("Webcam failed. Make sure you granted camera permissions.");
+        alert("Webcam error: " + err.message);
     }
 }
 
 async function loop() {
-    webcam.update();
-    const prediction = await model.predict(webcam.canvas);
-    displayResults(prediction);
-    window.requestAnimationFrame(loop);
+    if (webcam) {
+        webcam.update();
+        const prediction = await model.predict(webcam.canvas);
+        displayResults(prediction);
+        window.requestAnimationFrame(loop);
+    }
 }
 
-// 4. Display Results
 function displayResults(prediction) {
     const labelContainer = document.getElementById("label-container");
     labelContainer.innerHTML = "";
 
     prediction.forEach(p => {
         const percentage = (p.probability * 100).toFixed(2);
-        // Only show if probability is high (optional improvement)
-        if (percentage > 10) { 
-            labelContainer.innerHTML += `<div>${p.className}: ${percentage}%</div>`;
+        if (percentage > 5) {
+            const res = document.createElement("div");
+            res.innerHTML = `${p.className}: ${percentage}%`;
+            labelContainer.appendChild(res);
         }
     });
 }
