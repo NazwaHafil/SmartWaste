@@ -14,6 +14,11 @@ loadModel();
 
 // IMAGE UPLOAD CLASSIFICATION
 document.getElementById("imageUpload").addEventListener("change", async function (event) {
+    if (!model) {
+        alert("Model is still loading. Please wait.");
+        return;
+    }
+
     const img = document.getElementById("preview");
     img.src = URL.createObjectURL(event.target.files[0]);
 
@@ -22,6 +27,7 @@ document.getElementById("imageUpload").addEventListener("change", async function
         displayResults(prediction);
     };
 });
+;
 
 model = await tmImage.load(
     URL + "model.json",
