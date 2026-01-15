@@ -1,5 +1,6 @@
-const URL = "model/";
+const URL = "model/";  // folder with model.json, metadata.json, weights.bin
 let model, webcam, maxPredictions;
+let modelLoaded = false;
 
 // Load Teachable Machine model
 async function loadModel() {
@@ -8,12 +9,20 @@ async function loadModel() {
 
     model = await tmImage.load(modelURL, metadataURL);
     maxPredictions = model.getTotalClasses();
+    modelLoaded = true;
+    console.log("Model loaded successfully!");
+    document.getElementById("status").innerText = "Model loaded! You can upload image now.";
 }
 
 loadModel();
 
 // IMAGE UPLOAD CLASSIFICATION
 document.getElementById("imageUpload").addEventListener("change", async function (event) {
+    if (!modelLoaded) {
+        alert("Model is still loading, please wait a few seconds!");
+        return;
+    }
+
     const img = document.getElementById("preview");
     img.src = URL.createObjectURL(event.target.files[0]);
 
@@ -25,12 +34,18 @@ document.getElementById("imageUpload").addEventListener("change", async function
 
 // WEBCAM CLASSIFICATION
 async function startWebcam() {
-    webcam = new tmImage.Webcam(300, 300, true);
+    if (!modelLoaded) {
+        alert("Model is still loading, please wait a few seconds!");
+        return;
+    }
+
+    webcam = new tmImage.Webcam(300, 300, true); // width, height, flip
     await webcam.setup();
     await webcam.play();
 
-    document.getElementById("webcam-container").innerHTML = "";
-    document.getElementById("webcam-container").appendChild(webcam.canvas);
+    const container = document.getElementById("webcam-container");
+    container.innerHTML = "";
+    container.appendChild(webcam.canvas);
 
     window.requestAnimationFrame(loop);
 }
