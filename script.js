@@ -2,6 +2,7 @@ const MODEL_URL = "model/";
 let model, webcam, maxPredictions;
 let modelLoaded = false;
 
+// 1. Load Model
 async function loadModel() {
     try {
         const modelURL = MODEL_URL + "model.json";
@@ -12,17 +13,18 @@ async function loadModel() {
         modelLoaded = true;
         document.getElementById("status").innerText = "Model loaded! Ready to classify.";
     } catch (e) {
-        document.getElementById("status").innerText = "Error loading model. Check console.";
+        document.getElementById("status").innerText = "Error loading model. Check folder names/paths.";
         console.error(e);
     }
 }
 loadModel();
 
+// 2. Image Upload (Fixed window.URL conflict)
 document.getElementById("imageUpload").addEventListener("change", async function (event) {
     if (!modelLoaded) return;
 
     const img = document.getElementById("preview");
-    // Use window.URL to avoid conflict with your MODEL_URL variable
+    // FIXED LINE BELOW: Added window.
     img.src = window.URL.createObjectURL(event.target.files[0]);
 
     img.onload = async () => {
@@ -31,22 +33,30 @@ document.getElementById("imageUpload").addEventListener("change", async function
     };
 });
 
-// WEBCAM CLASSIFICATION
+// 3. Webcam Setup (Added mobile support)
 async function startWebcam() {
     if (!modelLoaded) {
-        alert("Model is still loading, please wait a few seconds!");
+        alert("Model is still loading!");
         return;
     }
 
-    webcam = new tmImage.Webcam(300, 300, true); // width, height, flip
-    await webcam.setup();
-    await webcam.play();
+    const flip = true; 
+    webcam = new tmImage.Webcam(300, 300, flip); 
 
-    const container = document.getElementById("webcam-container");
-    container.innerHTML = "";
-    container.appendChild(webcam.canvas);
+    try {
+        // FIXED LINE BELOW: Added facingMode for mobile back-camera support
+        await webcam.setup({ facingMode: "environment" }); 
+        await webcam.play();
 
-    window.requestAnimationFrame(loop);
+        const container = document.getElementById("webcam-container");
+        container.innerHTML = "";
+        container.appendChild(webcam.canvas);
+
+        window.requestAnimationFrame(loop);
+    } catch (err) {
+        console.error("Webcam error:", err);
+        alert("Webcam failed. Make sure you granted camera permissions.");
+    }
 }
 
 async function loop() {
@@ -56,14 +66,16 @@ async function loop() {
     window.requestAnimationFrame(loop);
 }
 
-// DISPLAY RESULTS
+// 4. Display Results
 function displayResults(prediction) {
     const labelContainer = document.getElementById("label-container");
     labelContainer.innerHTML = "";
 
     prediction.forEach(p => {
         const percentage = (p.probability * 100).toFixed(2);
-        labelContainer.innerHTML +=
-            `<div>${p.className}: ${percentage}%</div>`;
+        // Only show if probability is high (optional improvement)
+        if (percentage > 10) { 
+            labelContainer.innerHTML += `<div>${p.className}: ${percentage}%</div>`;
+        }
     });
 }
