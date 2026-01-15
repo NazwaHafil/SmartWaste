@@ -1,30 +1,29 @@
-const URL = "model/";  // folder with model.json, metadata.json, weights.bin
+const MODEL_URL = "model/"; 
 let model, webcam, maxPredictions;
 let modelLoaded = false;
 
-// Load Teachable Machine model
 async function loadModel() {
-    const modelURL = URL + "model.json";
-    const metadataURL = URL + "metadata.json";
+    try {
+        const modelURL = MODEL_URL + "model.json";
+        const metadataURL = MODEL_URL + "metadata.json";
 
-    model = await tmImage.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses();
-    modelLoaded = true;
-    console.log("Model loaded successfully!");
-    document.getElementById("status").innerText = "Model loaded! You can upload image now.";
+        model = await tmImage.load(modelURL, metadataURL);
+        maxPredictions = model.getTotalClasses();
+        modelLoaded = true;
+        document.getElementById("status").innerText = "Model loaded! Ready to classify.";
+    } catch (e) {
+        document.getElementById("status").innerText = "Error loading model. Check console.";
+        console.error(e);
+    }
 }
-
 loadModel();
 
-// IMAGE UPLOAD CLASSIFICATION
 document.getElementById("imageUpload").addEventListener("change", async function (event) {
-    if (!modelLoaded) {
-        alert("Model is still loading, please wait a few seconds!");
-        return;
-    }
+    if (!modelLoaded) return;
 
     const img = document.getElementById("preview");
-    img.src = URL.createObjectURL(event.target.files[0]);
+    // Use window.URL to avoid conflict with your MODEL_URL variable
+    img.src = window.URL.createObjectURL(event.target.files[0]);
 
     img.onload = async () => {
         const prediction = await model.predict(img);
