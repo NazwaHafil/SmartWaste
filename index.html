@@ -1,1 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartWaste – AI Waste Classifier</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>SmartWaste – AI Waste Classifier</h1>
+    <p>Upload an image or use webcam to classify waste</p>
+
+    <div class="controls">
+        <input type="file" id="imageUpload" accept="image/*">
+        <button onclick="startWebcam()">Start Webcam</button>
+    </div>
+
+    <div class="content">
+        <img id="preview" alt="Image Preview">
+        <div id="webcam-container"></div>
+    </div>
+
+    <h2>Prediction Result</h2>
+    <div id="label-container"></div>
+
+    <!-- TensorFlow & Teachable Machine -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
 
