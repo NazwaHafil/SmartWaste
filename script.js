@@ -17,7 +17,9 @@ async function loadModel() {
         console.error(e);
     }
 }
-loadModel();
+window.onload = () => {
+    loadModel();
+};
 
 // 2. Image Upload (Fixed window.URL conflict)
 document.getElementById("imageUpload").addEventListener("change", async function (event) {
