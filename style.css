@@ -4,8 +4,14 @@ body {
     text-align: center;
     padding: 20px;
 }
+
 h1 {
     color: #2e7d32;
+}
+
+#status {
+    font-weight: bold;
+    color: #555;
 }
 
 .controls {
@@ -37,6 +43,7 @@ button:hover {
     height: 300px;
     border-radius: 10px;
     background-color: white;
+    object-fit: cover;
 }
 
 #label-container div {
@@ -47,4 +54,3 @@ button:hover {
     border-radius: 8px;
     font-weight: bold;
 }
-
