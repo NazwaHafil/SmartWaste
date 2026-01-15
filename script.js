@@ -48,9 +48,12 @@ async function startWebcam() {
 }
 
 async function loop() {
+    if (!model || !webcam) return;
+
     webcam.update();
     const prediction = await model.predict(webcam.canvas);
     displayResults(prediction);
+
     window.requestAnimationFrame(loop);
 }
 
