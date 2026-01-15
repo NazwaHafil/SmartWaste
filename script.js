@@ -23,6 +23,12 @@ document.getElementById("imageUpload").addEventListener("change", async function
     };
 });
 
+model = await tmImage.load(
+    URL + "model.json",
+    URL + "metadata.json"
+);
+
+
 // WEBCAM CLASSIFICATION
 async function startWebcam() {
     webcam = new tmImage.Webcam(300, 300, true);
