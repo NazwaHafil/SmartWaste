@@ -1,21 +1,28 @@
 const URL = "model/";
-let model, webcam, maxPredictions;
+let model, webcam;
 
-// Load Teachable Machine model
+// 1️⃣ CHECK SCRIPT LOAD
+console.log("✅ script.js loaded");
+
+// 2️⃣ LOAD MODEL
 async function loadModel() {
-    const modelURL = URL + "model.json";
-    const metadataURL = URL + "metadata.json";
+    try {
+        console.log("⏳ Loading model...");
+        const modelURL = URL + "model.json";
+        const metadataURL = URL + "metadata.json";
 
-    model = await tmImage.load(modelURL, metadataURL);
-    maxPredictions = model.getTotalClasses();
+        model = await tmImage.load(modelURL, metadataURL);
+        console.log("✅ Model loaded");
+    } catch (error) {
+        console.error("❌ Model failed to load:", error);
+    }
 }
-
 loadModel();
 
-// IMAGE UPLOAD CLASSIFICATION
+// 3️⃣ IMAGE UPLOAD
 document.getElementById("imageUpload").addEventListener("change", async function (event) {
     if (!model) {
-        alert("Model is still loading. Please wait.");
+        alert("Model not loaded yet!");
         return;
     }
 
@@ -23,49 +30,43 @@ document.getElementById("imageUpload").addEventListener("change", async function
     img.src = URL.createObjectURL(event.target.files[0]);
 
     img.onload = async () => {
+        console.log("📷 Image loaded");
         const prediction = await model.predict(img);
         displayResults(prediction);
     };
 });
-;
 
-model = await tmImage.load(
-    URL + "model.json",
-    URL + "metadata.json"
-);
-
-
-// WEBCAM CLASSIFICATION
-async function startWebcam() {
-    webcam = new tmImage.Webcam(300, 300, true);
-    await webcam.setup();
-    await webcam.play();
-
-    document.getElementById("webcam-container").innerHTML = "";
-    document.getElementById("webcam-container").appendChild(webcam.canvas);
-
-    window.requestAnimationFrame(loop);
-}
-
-async function loop() {
-    if (!model || !webcam) return;
-
-    webcam.update();
-    const prediction = await model.predict(webcam.canvas);
-    displayResults(prediction);
-
-    window.requestAnimationFrame(loop);
-}
-
-// DISPLAY RESULTS
+// 4️⃣ DISPLAY RESULT
 function displayResults(prediction) {
+    console.log("📊 Prediction result:", prediction);
+
     const labelContainer = document.getElementById("label-container");
     labelContainer.innerHTML = "";
 
     prediction.forEach(p => {
-        const percentage = (p.probability * 100).toFixed(2);
         labelContainer.innerHTML +=
-            `<div>${p.className}: ${percentage}%</div>`;
+            `<div>${p.className}: ${(p.probability * 100).toFixed(2)}%</div>`;
     });
 }
 
+// 5️⃣ WEBCAM
+async function startWebcam() {
+    if (!model) {
+        alert("Model not loaded yet!");
+        return;
+    }
+
+    webcam = new tmImage.Webcam(300, 300, true);
+    await webcam.setup();
+    await webcam.play();
+
+    document.getElementById("webcam-container").appendChild(webcam.canvas);
+    requestAnimationFrame(loop);
+}
+
+async function loop() {
+    webcam.update();
+    const prediction = await model.predict(webcam.canvas);
+    displayResults(prediction);
+    requestAnimationFrame(loop);
+}
